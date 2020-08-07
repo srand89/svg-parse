@@ -11,8 +11,25 @@ def svg_parse(name):
     path_labels = [path.getAttribute('inkscape:label') for path
                     in doc.getElementsByTagName('path')]
 
+	width = [path.getAttribute('width') for path
+                in doc.getElementsByTagName('svg')]
+
+	height = [path.getAttribute('height') for path
+					in doc.getElementsByTagName('svg')]
+
+	transform = [path.getAttribute('transform') for path
+					in doc.getElementsByTagName('g')]
+
     doc.unlink()
 
+	if not transform:
+    transform = [0,0]
+	viewbox = []
+	viewbox.append(transform[0])
+	viewbox.append(transform[1])
+	viewbox.append(width[0])
+	viewbox.append(height[0])
+	viewbox = [' '.join([str(x) for x in viewbox])]
 
     #build the dic
     foo = []
@@ -31,12 +48,36 @@ def svg_parse(name):
             'name':path_labels[row]
             }
         foo.append(d)
+		
+	header = {'type':'ia.shapes.svg',
+          'version':'0',
+          'props':{
+              'viewbox':viewbox[0],
+              'preserveAspectRatio':'xMinYmin',
+              'elements':{},
+              'style':{}
+              },
+          'meta':{
+              'name':'MAP'
+              },
+          'position':{
+              'x':0,
+              'y':0,
+              'height':float(height[0]),
+              'width':float(width[0])
+              },
+          'custom':{}
+          }
 
+	header['props']['elements'] = foo
+	header = [header]
+	
     ## Export to JSON
-    j = json.dumps(foo, indent=4)
+    j = json.dumps(header, indent=4)
     f = open('output.json', 'w') #output file name
     print(j,file=f)
     f.close()
+	
 
 app = Flask(__name__)  
  
